@@ -1,5 +1,7 @@
 import mysql.connector
 from mysql.connector import Error
+import  pandas as pd
+import matplotlib.pyplot as plt
 import logging
 
 class DatabaseConnection:
@@ -11,8 +13,8 @@ class DatabaseConnection:
             try:
                 DatabaseConnection._connection = mysql.connector.connect(
                     host='localhost',
-                    user='admin',  
-                    password='2001',  
+                    user='admin',
+                    password='2001',
                     database='school'
                 )
                 if DatabaseConnection._connection.is_connected():
@@ -29,73 +31,94 @@ class DatabaseConnection:
     def create_tables():
         connection = DatabaseConnection.get_connection()
         cursor = connection.cursor()
-        
+
         # Create teachers table
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS teachers (
-            teacher_id INT NOT NULL auto_increment,
+            teacher_id INT NOT NULL AUTO_INCREMENT,
             name VARCHAR(255),
             email VARCHAR(255),
             course_id INT,
             PRIMARY KEY (teacher_id),
-            FOREIGN KEY (course_id) REFFERENCES courses (course_id)
+            FOREIGN KEY (course_id) REFERENCES courses (course_id)
         )
         """)
 
         # Create students table
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS students (
-            student_id INT NOT NULL auto_increment ,
+            student_id INT NOT NULL AUTO_INCREMENT,
             name VARCHAR(255),
             email VARCHAR(255),
             class_id INT,
             PRIMARY KEY (student_id),
-            FOREIGN KEY (class_id) REFFERENCES Classes (class_id)
+            FOREIGN KEY (class_id) REFERENCES classes (class_id)
         )
         """)
 
         # Create classes table
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS classes (
-            class_id INT NOT NULL auto_increment ,
+            class_id INT NOT NULL AUTO_INCREMENT,
             name VARCHAR(255),
             teacher_id INT,
             PRIMARY KEY (class_id),
-            FOREIGN KEY (teacher_id) REFFERENCES teacher (teacher_id)
+            FOREIGN KEY (teacher_id) REFERENCES teachers (teacher_id)
         )
         """)
 
         # Create courses table
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS courses (
-            course_id INT  NOT NULL auto_increment ,
+            course_id INT NOT NULL AUTO_INCREMENT,
             name VARCHAR(255),
             teacher_id INT,
-            PRIMARY KEY(course_id),    
-            FOREIGN KEY (teacher_id) REFERENCES Teacher (teacher_id)   
+            PRIMARY KEY(course_id),
+            FOREIGN KEY (teacher_id) REFERENCES teachers (teacher_id)
         )
         """)
 
         connection.commit()
         print("Tables created successfully.")
 
-class Student:
-    def __init__(self, student_id, name, email, class_id):
-        self.student_id = student_id
+class Person:
+    def __init__(self, name, email):
         self.name = name
         self.email = email
+
+class Student(Person):
+    def __init__(self, student_id, name, email, class_id):
+        super().__init__(name, email)
+        self.student_id = student_id
         self.class_id = class_id
 
-class Teacher:
+class Teacher(Person):
     def __init__(self, teacher_id, name, email, course_id):
-        self.teacher_id = teacher_id
+        super().__init__(name, email)
         self.name = name
         self.email = email
+        self.teacher_id = teacher_id
+        self.course_id = course_id
+        
+
+class Courses:
+    def __init__(self, course_id, name, teacher_id):
+        self.course_id = course_id
+        self.name =name
+        self.teacher_id = teacher_id
+
+
+class Classes:
+    def __init__(self, class_id, name, teacher_id, course_id):
+        self.class_id =class_id
+        self.name =name
+        self.teacher_id = teacher_id
         self.course_id = course_id
 
+
 class DatabaseStudent:
-    def __init__(self, _connection):
-        self.connection = _connection
+    def __init__(self, connection):
+        self.connection = connection
 
     def add_student(self, student):
         cursor = self.connection.cursor()
@@ -123,25 +146,24 @@ class DatabaseStudent:
         cursor.execute("DELETE FROM students WHERE student_id = %s", (student_id,))  
         self.connection.commit()
 
-    def search_by_student_id(self):
+    def search_by_student_id(self, student_id):
         cursor = self.connection.cursor()
-        id = input("Enter your id:")
-        if id in DatabaseStudent:
-            cursor.execute("SHOW * student WHERE student_id = %s",(id))
+        cursor.execute("SELECT * FROM students WHERE student_id = %s", (student_id,))
+        return cursor.fetchone()
 
-    def search_by_name(self):
-        pass
+    def search_by_name(self, name):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM students WHERE name LIKE %s", ('%' + name + '%',))
+        return cursor.fetchall()
 
-    def search_by_class_id():
-        pass
-
-            
-
-
+    def search_by_class_id(self, class_id):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM students WHERE class_id = %s", (class_id,))
+        return cursor.fetchall()
 
 class DatabaseTeacher:  
-    def __init__(self, _connection):  
-        self.connection = _connection  
+    def __init__(self, connection):  
+        self.connection = connection  
 
     def add_teacher(self, teacher):  
         cursor = self.connection.cursor()  
@@ -161,6 +183,8 @@ class DatabaseTeacher:
         cursor.execute("DELETE FROM teachers WHERE teacher_id = %s", (teacher_id,))  
         self.connection.commit()
 
+
+
 def main():
     connection_ = DatabaseConnection.get_connection()
     if connection_ is None:
@@ -179,8 +203,9 @@ def main():
         print("5. Update Student")
         print("6. Delete Teacher")
         print("7. Delete Student")
-        print("8.search in student")
-        print("9. Exit")
+        print("8. Search in Student")
+        print("9.search by Teacher")
+        print("10. Exit")
 
         choice = input("Enter your choice: ")
 
@@ -237,18 +262,23 @@ def main():
             print("Deleted student with ID:", student_id)
 
         elif choice == '8':
-            search = input("search by (student_id ,name , class_id):").lower()
+            search = input("Search by (student_id, name, class_id) : ").lower()
             if search == "student_id":
-                DatabaseStudent.search_by_student_id()
+                student_id = input("Enter student ID: ")
+                student = db_student.search_by_student_id(student_id)
+                print("Search Result:", student)
             elif search == "name":
-                DatabaseStudent.search_by_name()
+                name = input("Enter name to search: ")
+                results = db_student.search_by_name(name)
+                print("Search Results:", results)
             elif search == "class_id":
-                DatabaseStudent.search_by_class_id()
+                class_id = input("Enter class ID: ")
+                results = db_student.search_by_class_id(class_id)
+                print("Search Results:", results)
+            else:
+                print("Invalid search criteria.")
 
-        elif choice == "9":
-            pass
-
-        elif choice == '12':
+        elif choice == "10":
             break
 
         else:
