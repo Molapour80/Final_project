@@ -114,5 +114,109 @@ class DatabaseStudent:
         cursor.execute("DELETE FROM students WHERE student_id = %s", (student_id,))  
         self.connection.commit()
 
+class DatabaseTeacher:  
+    def __init__(self, db_connection):  
+        self.connection = db_connection  
 
+    def add_teacher(self, teacher):  
+        cursor = self.connection.cursor()  
+        cursor.execute(  
+            "INSERT INTO teachers (teacher_id, name, email, course_id) VALUES (%s, %s, %s, %s)",  
+            (teacher.teacher_id, teacher.name, teacher.email, teacher.course_id)  
+        )  
+        self.connection.commit()  
 
+    def get_teacher(self, teacher_id):  
+        cursor = self.connection.cursor()  
+        cursor.execute("SELECT * FROM teachers WHERE teacher_id = %s", (teacher_id,))  
+        return cursor.fetchone()  
+
+    def delete_teacher(self, teacher_id):  
+        cursor = self.connection.cursor()  
+        cursor.execute("DELETE FROM teachers WHERE teacher_id = %s", (teacher_id,))  
+        self.connection.commit()
+
+def main():
+    connection_ = DatabaseConnection.get_connection()
+    if connection_ is None:
+        print("Failed to connect to the database.")
+        return
+
+    db_student = DatabaseStudent(connection_)
+    db_teacher = DatabaseTeacher(connection_)
+
+    while True:
+        print("\nSelect an operation:")
+        print("1. Add Teacher")
+        print("2. Add Student")
+        print("3. Get Teacher")
+        print("4. Get Student")
+        print("5. Update Student")
+        print("6. Delete Teacher")
+        print("7. Delete Student")
+        print("8. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == "1":
+            teacher_id = input("Enter teacher ID: ")
+            name = input("Enter teacher name: ")
+            email = input("Enter teacher email: ")
+            course_id = input("Enter course ID: ")
+            new_teacher = Teacher(teacher_id, name, email, course_id)
+            db_teacher.add_teacher(new_teacher)
+            print("Added teacher:", new_teacher.name)
+
+        elif choice == "2":
+            student_id = input("Enter student ID: ")
+            name = input("Enter student name: ")
+            email = input("Enter student email: ")
+            class_id = input("Enter class ID: ")
+            new_student = Student(student_id, name, email, class_id)
+            db_student.add_student(new_student)
+            print("Added student:", new_student.name)
+
+        elif choice == '3':
+            teacher_id = input("Enter teacher ID to retrieve: ")
+            teacher = db_teacher.get_teacher(teacher_id)
+            print("Retrieved Teacher:", teacher)
+
+        elif choice == '4':
+            student_id = input("Enter student ID to retrieve: ")
+            student = db_student.get_student(student_id)
+            print("Retrieved Student:", student)
+
+        elif choice == '5':
+            student_id = input("Enter student ID to update: ")
+            student = db_student.get_student(student_id)
+            if student:
+                print("Current Name:", student[1])
+                student_name = input("Enter new name: ")
+                student_email = input("Enter new email: ")
+                student_class_id = input("Enter new class ID: ")
+                updated_student = Student(student_id, student_name, student_email, student_class_id)
+                db_student.update_student(updated_student)
+                print("Updated student:", student_name)
+            else:
+                print("Student not found.")
+
+        elif choice == '6':
+            teacher_id = input("Enter teacher ID to delete: ")
+            db_teacher.delete_teacher(teacher_id)
+            print("Deleted teacher with ID:", teacher_id)
+
+        elif choice == '7':
+            student_id = input("Enter student ID to delete: ")
+            db_student.delete_student(student_id)
+            print("Deleted student with ID:", student_id)
+
+        elif choice == '8':
+            break
+
+        else:
+            print("Invalid choice! Please try again.")
+
+    connection_.close()
+
+if __name__ == "__main__":
+    main()
