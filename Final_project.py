@@ -1,5 +1,6 @@
 import mysql.connector
 from mysql.connector import Error
+import logging
 
 class DatabaseConnection:
     _connection = None
@@ -32,38 +33,46 @@ class DatabaseConnection:
         # Create teachers table
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS teachers (
-            teacher_id INT PRIMARY KEY,
+            teacher_id INT NOT NULL auto_increment,
             name VARCHAR(255),
             email VARCHAR(255),
-            course_id INT
+            course_id INT,
+            PRIMARY KEY (teacher_id),
+            FOREIGN KEY (course_id) REFFERENCES courses (course_id)
         )
         """)
 
         # Create students table
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS students (
-            student_id INT PRIMARY KEY,
+            student_id INT NOT NULL auto_increment ,
             name VARCHAR(255),
             email VARCHAR(255),
-            class_id INT
+            class_id INT,
+            PRIMARY KEY (student_id),
+            FOREIGN KEY (class_id) REFFERENCES Classes (class_id)
         )
         """)
 
         # Create classes table
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS classes (
-            class_id INT PRIMARY KEY,
+            class_id INT NOT NULL auto_increment ,
             name VARCHAR(255),
-            teacher_id INT
+            teacher_id INT,
+            PRIMARY KEY (class_id),
+            FOREIGN KEY (teacher_id) REFFERENCES teacher (teacher_id)
         )
         """)
 
         # Create courses table
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS courses (
-            course_id INT PRIMARY KEY,
+            course_id INT  NOT NULL auto_increment ,
             name VARCHAR(255),
-            teacher_id INT
+            teacher_id INT,
+            PRIMARY KEY(course_id),    
+            FOREIGN KEY (teacher_id) REFERENCES Teacher (teacher_id)   
         )
         """)
 
@@ -114,6 +123,22 @@ class DatabaseStudent:
         cursor.execute("DELETE FROM students WHERE student_id = %s", (student_id,))  
         self.connection.commit()
 
+    def search_by_student_id(self):
+        cursor = self.connection.cursor()
+        id = input("Enter your id:")
+        if id in DatabaseStudent:
+            cursor.execute("SHOW * student WHERE student_id = %s",(id))
+
+    def search_by_name(self):
+        pass
+
+    def search_by_class_id():
+        pass
+
+            
+
+
+
 class DatabaseTeacher:  
     def __init__(self, db_connection):  
         self.connection = db_connection  
@@ -154,7 +179,8 @@ def main():
         print("5. Update Student")
         print("6. Delete Teacher")
         print("7. Delete Student")
-        print("8. Exit")
+        print("8.search in student")
+        print("9. Exit")
 
         choice = input("Enter your choice: ")
 
@@ -211,6 +237,15 @@ def main():
             print("Deleted student with ID:", student_id)
 
         elif choice == '8':
+            search = input("search by (student_id ,name , class_id):").lower()
+            if search == "student_id":
+                DatabaseStudent.search_by_student_id()
+            elif search == "name":
+                DatabaseStudent.search_by_name()
+            elif search == "class_id":
+                DatabaseStudent.search_by_class_id()
+
+        elif choice == '9':
             break
 
         else:
