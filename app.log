@@ -1,0 +1,18 @@
+2025-01-08 21:23:56,891 - INFO - Connected to the database
+2025-01-08 21:23:57,102 - INFO - Tables created successfully.
+2025-01-08 21:24:03,137 - ERROR - Error while plotting data: 'stu_count'
+2025-01-08 21:33:32,112 - INFO - Connected to the database
+2025-01-08 21:33:32,306 - INFO - Tables created successfully.
+2025-01-08 21:34:18,441 - INFO - Connected to the database
+2025-01-08 21:34:18,621 - INFO - Tables created successfully.
+2025-01-08 21:34:36,113 - INFO - Added course: ew
+2025-01-08 21:34:55,328 - ERROR - Error while plotting data: no numeric data to plot
+2025-01-08 21:41:10,861 - ERROR - Error while plotting data: no numeric data to plot
+2025-01-08 21:47:05,471 - INFO - Connected to the database
+2025-01-08 21:49:40,621 - ERROR - Error while plotting data: no numeric data to plot
+2025-01-08 21:51:10,305 - INFO - Connected to the database
+2025-01-08 21:51:10,894 - INFO - Tables created successfully.
+2025-01-08 21:51:44,407 - INFO - Connected to the database
+2025-01-08 21:51:44,633 - INFO - Tables created successfully.
+2025-01-08 21:54:37,895 - INFO - Connected to the database
+2025-01-08 21:54:38,098 - INFO - Tables created successfully.

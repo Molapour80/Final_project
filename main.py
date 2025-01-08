@@ -27,7 +27,7 @@ def main():
         if choice == "1":
             name = input("Enter teacher name: ")
             email = input("Enter teacher email: ")
-            course_id = input("Enter course ID: ")
+            course_id = int(input("Enter course ID: "))
             new_teacher = Teacher(teacher_id=None, name=name, email=email, course_id=course_id)
             db_teacher.add_teacher(new_teacher)
             print("Added teacher:", new_teacher.name)
@@ -113,4 +113,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    DataVisualization()
+    
