@@ -94,8 +94,8 @@ class Teacher:
         self.course_id = course_id
 
 class DatabaseStudent:
-    def __init__(self, db_connection):
-        self.connection = db_connection
+    def __init__(self, _connection):
+        self.connection = _connection
 
     def add_student(self, student):
         cursor = self.connection.cursor()
@@ -140,8 +140,8 @@ class DatabaseStudent:
 
 
 class DatabaseTeacher:  
-    def __init__(self, db_connection):  
-        self.connection = db_connection  
+    def __init__(self, _connection):  
+        self.connection = _connection  
 
     def add_teacher(self, teacher):  
         cursor = self.connection.cursor()  
@@ -245,7 +245,10 @@ def main():
             elif search == "class_id":
                 DatabaseStudent.search_by_class_id()
 
-        elif choice == '9':
+        elif choice == "9":
+            pass
+
+        elif choice == '12':
             break
 
         else:
