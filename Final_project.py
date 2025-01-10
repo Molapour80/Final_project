@@ -1,15 +1,14 @@
 import mysql.connector
-from mysql.connector import Error
+import logging
 import pandas as pd
 import matplotlib.pyplot as plt
-import logging
 
 # Set up logging
 logging.basicConfig(
-    filename='app.log',         
-    filemode='a',              
-    level=logging.INFO,        
-    format='%(asctime)s - %(levelname)s - %(message)s'  
+    filename='app.log',
+    filemode='a',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
 class DatabaseConnection:
@@ -25,14 +24,10 @@ class DatabaseConnection:
                     password='2001',
                     database='school'
                 )
-                if DatabaseConnection._connection.is_connected():
-                    logging.info("Connected to the database")
-                    DatabaseConnection.create_tables()
-                else:
-                    logging.error("Not connected")
-            except Error as e:
-                logging.error("Error connecting to the server: %s", e)
-                DatabaseConnection._connection = None  
+                logging.info("Connected to the database")
+            except mysql.connector.Error as e:
+                logging.error("Error connecting to the database: %s", e)
+                DatabaseConnection._connection = None
         return DatabaseConnection._connection
 
     @staticmethod
@@ -157,7 +152,7 @@ class DatabaseStudent:
     def search_by_student_id(self, student_id):
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM students WHERE student_id = %s", (student_id,))
-        return cursor.fetchone()
+        return cursor.fetchall()
 
     def search_by_name(self, name):
         cursor = self.connection.cursor()
@@ -262,3 +257,36 @@ class DatabaseClass:
         cursor.execute("DELETE FROM classes WHERE class_id = %s", (class_id,))
         self.connection.commit()
 
+
+class DataVisualization:
+    @staticmethod
+    def plot_student_count_by_class():
+        """Plots the number of students in each class using Matplotlib and Pandas."""
+        query = """
+        SELECT classes.name AS class_name, COUNT(students.student_id) AS student_count
+        FROM classes
+        LEFT JOIN students ON classes.class_id = students.class_id
+        GROUP BY classes.class_id
+        """
+        connection = DatabaseConnection.get_connection()
+        if connection:
+            try:
+                cursor = connection.cursor()
+                cursor.execute(query)
+                results = cursor.fetchall()
+                
+                # Convert results to DataFrame
+                df = pd.DataFrame(results, columns=['class_name', 'student_count'])
+                
+                plt.figure(figsize=(10, 6))
+                plt.bar(df['class_name'], df['student_count'], color='skyblue')
+                plt.title('Number of Students by Class')
+                plt.xlabel('Class Name')
+                plt.ylabel('Student Count')
+                plt.xticks(rotation=45)
+                plt.tight_layout()
+                plt.show()
+            except Exception as e:
+                logging.error("Error while plotting data: %s", e)
+            finally:
+                cursor.close()
