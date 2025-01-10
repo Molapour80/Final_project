@@ -1,5 +1,51 @@
 from Final_project import *
-import csv
+
+
+def import_or_update_students_from_csv(db_student, db_class, file_path):
+    """Import or update students from a CSV file into the database."""
+    try:
+        with open(file_path, mode='r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                name = row['name']
+                email = row['email']
+                class_id = int(row['class_id'])
+
+                # Check if class exists before adding or updating student
+                if db_class.get_class(class_id):
+                    # Check if student already exists
+                    existing_student = db_student.get_student_by_email(email)
+                    if existing_student:
+                        # Update existing student
+                        existing_student.name = name
+                        existing_student.class_id = class_id
+                        db_student.update_student(existing_student)
+                        print(f"Updated student: {name}")
+                    else:
+                        # Add new student
+                        student = Student(student_id=None, name=name, email=email, class_id=class_id)
+                        db_student.add_student(student)
+                        print(f"Added student: {name}")
+                else:
+                    print(f"Class ID {class_id} does not exist. Skipping student: {name}")
+    except FileNotFoundError:
+        print(f"Error: The file {file_path} was not found.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+def generate_report(db_student, db_class):
+    """Generate a report of students and their classes."""
+    students = db_student.get_all_students()
+    report_data = []
+
+    for student in students:
+        class_name = db_class.get_class(student[3])[1]  
+        report_data.append(f"Student ID: {student[0]}, Name: {student[1]}, Email: {student[2]}, Class: {class_name}")
+
+    with open("student_report.txt", "w") as report_file:
+        for line in report_data:
+            report_file.write(line + "\n")
+    print("Report generated: student_report.txt")
 
 def main():
     connection_ = DatabaseConnection.get_connection()
@@ -29,10 +75,10 @@ def main():
             database_student(db_student, db_class)
 
         elif choice == "2":
-            database_teacher(db_teacher)
+            database_teacher(db_teacher,db_course)
 
         elif choice == "3":
-            database_class(db_class)
+            database_class(db_class, db_teacher)  
 
         elif choice == "4":
             database_courses(db_course)
@@ -86,6 +132,7 @@ def export_data_to_csv(db_student, db_teacher, db_class, db_course):
         print("Data exported to CSV files successfully.")
     except Exception as e:
         logging.error("Error exporting data to CSV: %s", e)
+        print("Failed to export data to CSV. Please check the file permissions and try again.")
 
 def database_student(db_student, db_class):
     while True:
@@ -166,7 +213,7 @@ def database_student(db_student, db_class):
         else:
             print("Invalid choice! Please try again.")
 
-def database_teacher(db_teacher):
+def database_teacher(db_teacher, db_course):
     while True:
         print("\nTeacher Operations:")
         print("1. Add Teacher")
@@ -182,6 +229,12 @@ def database_teacher(db_teacher):
                 name = input("Enter teacher name: ")
                 email = input("Enter teacher email: ")
                 course_id = int(input("Enter course ID: "))
+
+                
+                if not db_course.get_course(course_id):
+                    print(f"Course ID {course_id} does not exist.")
+                    continue
+                
                 teacher = Teacher(teacher_id=None, name=name, email=email, course_id=course_id)
                 db_teacher.add_teacher(teacher)
                 print("Teacher added successfully.")
@@ -240,7 +293,7 @@ def database_teacher(db_teacher):
         else:
             print("Invalid choice! Please try again.")
 
-def database_class(db_class):
+def database_class(db_class, db_teacher):
     while True:
         print("\nClass Operations:")
         print("1. Add Class")
@@ -255,6 +308,12 @@ def database_class(db_class):
             try:
                 name = input("Enter class name: ")
                 teacher_id = int(input("Enter teacher ID: "))
+
+                
+                if not db_teacher.get_teacher(teacher_id):
+                    print(f"Teacher ID {teacher_id} does not exist.")
+                    continue
+                
                 class_ = Class(class_id=None, name=name, teacher_id=teacher_id)
                 db_class.add_class(class_)
                 print("Class added successfully.")
@@ -323,7 +382,7 @@ def database_courses(db_course):
 
         if choice == "1":
             try:
-                name = input("Enter course name: ")
+                name = input("Enter course name: ")  
                 course = Course(course_id=None, name=name)
                 db_course.add_course(course)
                 print("Course added successfully.")
@@ -376,3 +435,4 @@ def database_courses(db_course):
 
 if __name__ == "__main__":
     main()
+    

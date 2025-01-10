@@ -3,19 +3,10 @@ import logging
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
+import csv
 
 # Set up logging
-class Logger:
-    def __init__(self, log_file="Sys_school.log"):
-        
-        self.log_file = log_file
-
-    def write_log(self, cm, out ):
-        
-        with open(self.log_file, "a") as file:
-            now = datetime.now().strftime("%d/%m/%Y -- %I:%M %p")
-            text = f"{now} | Command: {cm} | Outcome: {out}\n"
-            file.write(text)
+logging.basicConfig(filename='Sys_school.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class DatabaseConnection:
     _connection = None
@@ -136,6 +127,7 @@ class DatabaseStudent:
             (student.name, student.email, student.class_id)
         )
         self.connection.commit()
+        logging.info(f"Added student: {student.name}")
 
     def get_student(self, student_id):
         cursor = self.connection.cursor()
@@ -149,31 +141,19 @@ class DatabaseStudent:
             (student.name, student.email, student.class_id, student.student_id)
         )
         self.connection.commit()
+        logging.info(f"Updated student: {student.name}")
 
     def delete_student(self, student_id):
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM students WHERE student_id = %s", (student_id,))
         self.connection.commit()
+        logging.info(f"Deleted student ID: {student_id}")
 
-    def search_by_student_id(self, student_id):
-        cursor = self.connection.cursor()
-        cursor.execute("SELECT * FROM students WHERE student_id = %s", (student_id,))
-        return cursor.fetchall()
-
-    def search_by_name(self, name):
-        cursor = self.connection.cursor()
-        cursor.execute("SELECT * FROM students WHERE name LIKE %s", ('%' + name + '%',))
-        return cursor.fetchall()
-
-    def search_by_class_id(self, class_id):
-        cursor = self.connection.cursor()
-        cursor.execute("SELECT * FROM students WHERE class_id = %s", (class_id,))
-        return cursor.fetchall()
-    
     def get_all_students(self):
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM students")
         return cursor.fetchall()
+
 
 # Database operations for Teachers
 class DatabaseTeacher:
@@ -182,11 +162,10 @@ class DatabaseTeacher:
 
     def add_teacher(self, teacher):
         cursor = self.connection.cursor()
-        cursor.execute(
-            "INSERT INTO teachers (name, email, course_id) VALUES (%s, %s, %s)",
-            (teacher.name, teacher.email, teacher.course_id)
-        )
+        cursor.execute("INSERT INTO teachers (name, email, course_id) VALUES (%s, %s, %s)", 
+                       (teacher.name, teacher.email, teacher.course_id))
         self.connection.commit()
+        logging.info(f"Added teacher: {teacher.name}")
 
     def get_teacher(self, teacher_id):
         cursor = self.connection.cursor()
@@ -195,16 +174,16 @@ class DatabaseTeacher:
 
     def update_teacher(self, teacher):
         cursor = self.connection.cursor()
-        cursor.execute(
-            "UPDATE teachers SET name = %s, email = %s, course_id = %s WHERE teacher_id = %s",
-            (teacher.name, teacher.email, teacher.course_id, teacher.teacher_id)
-        )
+        cursor.execute("UPDATE teachers SET name = %s, email = %s, course_id = %s WHERE teacher_id = %s",
+                       (teacher.name, teacher.email, teacher.course_id, teacher.teacher_id))
         self.connection.commit()
+        logging.info(f"Updated teacher: {teacher.name}")
 
     def delete_teacher(self, teacher_id):
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM teachers WHERE teacher_id = %s", (teacher_id,))
         self.connection.commit()
+        logging.info(f"Deleted teacher ID: {teacher_id}")
 
     def get_all_teachers(self):
         cursor = self.connection.cursor()
@@ -218,11 +197,9 @@ class DatabaseCourse:
 
     def add_course(self, course):
         cursor = self.connection.cursor()
-        cursor.execute(
-            "INSERT INTO courses (name) VALUES (%s)",
-            (course.name,)
-        )
+        cursor.execute("INSERT INTO courses (name) VALUES (%s)", (course.name,))
         self.connection.commit()
+        logging.info(f"Added course: {course.name}")
 
     def get_course(self, course_id):
         cursor = self.connection.cursor()
@@ -231,22 +208,20 @@ class DatabaseCourse:
 
     def update_course(self, course):
         cursor = self.connection.cursor()
-        cursor.execute(
-            "UPDATE courses SET name = %s WHERE course_id = %s",
-            (course.name, course.course_id)
-        )
+        cursor.execute("UPDATE courses SET name = %s WHERE course_id = %s", (course.name, course.course_id))
         self.connection.commit()
+        logging.info(f"Updated course: {course.name}")
 
     def delete_course(self, course_id):
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM courses WHERE course_id = %s", (course_id,))
         self.connection.commit()
+        logging.info(f"Deleted course ID: {course_id}")
 
     def get_all_courses(self):
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM courses")
         return cursor.fetchall()
-
 # Database operations for Classes
 class DatabaseClass:
     def __init__(self, connection):
@@ -254,11 +229,10 @@ class DatabaseClass:
 
     def add_class(self, class_):
         cursor = self.connection.cursor()
-        cursor.execute(
-            "INSERT INTO classes (name, teacher_id) VALUES (%s, %s)",
-            (class_.name, class_.teacher_id)
-        )
+        cursor.execute("INSERT INTO classes (name, teacher_id) VALUES (%s, %s)", 
+                       (class_.name, class_.teacher_id))
         self.connection.commit()
+        logging.info(f"Added class: {class_.name}")
 
     def get_class(self, class_id):
         cursor = self.connection.cursor()
@@ -267,17 +241,17 @@ class DatabaseClass:
 
     def update_class(self, class_):
         cursor = self.connection.cursor()
-        cursor.execute(
-            "UPDATE classes SET name = %s, teacher_id = %s WHERE class_id = %s",
-            (class_.name, class_.teacher_id, class_.class_id)
-        )
+        cursor.execute("UPDATE classes SET name = %s, teacher_id = %s WHERE class_id = %s",
+                       (class_.name, class_.teacher_id, class_.class_id))
         self.connection.commit()
+        logging.info(f"Updated class: {class_.name}")
 
     def delete_class(self, class_id):
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM classes WHERE class_id = %s", (class_id,))
         self.connection.commit()
-    
+        logging.info(f"Deleted class ID: {class_id}")
+
     def get_all_classes(self):
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM classes")
@@ -287,7 +261,6 @@ class DatabaseClass:
 class DataVisualization:
     @staticmethod
     def plot_student_count_by_class():
-        """Plots the number of students in each class using Matplotlib and Pandas."""
         query = """
         SELECT classes.name AS class_name, COUNT(students.student_id) AS student_count
         FROM classes
