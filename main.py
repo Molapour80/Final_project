@@ -19,8 +19,9 @@ def main():
         print("2. Database Teacher")
         print("3. Database Classes")
         print("4. Database Courses")
-        print("5. Visualize Student Count")
-        print("6. Exit")
+        print("5. Export Data to CSV") 
+        print("6. Visualize Student Count")
+        print("7. Exit")
 
         choice = input("Enter your choice: ")
 
@@ -37,9 +38,12 @@ def main():
             database_courses(db_course)
 
         elif choice == "5":
-            DataVisualization.plot_student_count_by_class(connection_)
+            export_data_to_csv(db_student, db_teacher, db_class, db_course)  
 
         elif choice == "6":
+            DataVisualization.plot_student_count_by_class()
+
+        elif choice == "7":
             print("Exiting the program.")
             break
 
@@ -49,37 +53,39 @@ def main():
     connection_.close()
 
 def export_data_to_csv(db_student, db_teacher, db_class, db_course):
-    """send the information to CSV"""
+    """Export information to CSV files."""
+    try:
+        # Export students
+        with open('students.csv', mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Student ID", "Name", "Email", "Class ID"])
+            for student in db_student.get_all_students():
+                writer.writerow(student)
 
-    #send to the student
-    with open('students.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Student ID", "Name", "Email", "Class ID"])
-        for student in db_student.get_all_students():
-            writer.writerow(student)  
+        # Export teachers
+        with open('teachers.csv', mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Teacher ID", "Name", "Email", "Course ID"])
+            for teacher in db_teacher.get_all_teachers():
+                writer.writerow(teacher)
 
-    #send to the teachers
-    with open('teachers.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Teacher ID", "Name", "Email", "Course ID"])  
-        for teacher in db_teacher.get_all_teachers():
-            writer.writerow(teacher)  
+        # Export classes
+        with open('classes.csv', mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Class ID", "Name", "Teacher ID"])
+            for class_ in db_class.get_all_classes():
+                writer.writerow(class_)
 
-    #send to the classes
-    with open('classes.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Class ID", "Name", "Teacher ID"])  
-        for class_ in db_class.get_all_classes():
-            writer.writerow(class_)  
+        # Export courses
+        with open('courses.csv', mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["Course ID", "Name"])
+            for course in db_course.get_all_courses():
+                writer.writerow(course)
 
-    #send to the courses
-    with open('courses.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["Course ID", "Name"])  
-        for course in db_course.get_all_courses():
-            writer.writerow(course)  
-
-    print("Data exported to CSV files successfully.")
+        print("Data exported to CSV files successfully.")
+    except Exception as e:
+        logging.error("Error exporting data to CSV: %s", e)
 
 def database_student(db_student, db_class):
     while True:

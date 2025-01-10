@@ -169,6 +169,11 @@ class DatabaseStudent:
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM students WHERE class_id = %s", (class_id,))
         return cursor.fetchall()
+    
+    def get_all_students(self):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM students")
+        return cursor.fetchall()
 
 # Database operations for Teachers
 class DatabaseTeacher:
@@ -201,6 +206,11 @@ class DatabaseTeacher:
         cursor.execute("DELETE FROM teachers WHERE teacher_id = %s", (teacher_id,))
         self.connection.commit()
 
+    def get_all_teachers(self):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM teachers")
+        return cursor.fetchall()
+
 # Database operations for Courses
 class DatabaseCourse:
     def __init__(self, connection):
@@ -232,6 +242,11 @@ class DatabaseCourse:
         cursor.execute("DELETE FROM courses WHERE course_id = %s", (course_id,))
         self.connection.commit()
 
+    def get_all_courses(self):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM courses")
+        return cursor.fetchall()
+
 # Database operations for Classes
 class DatabaseClass:
     def __init__(self, connection):
@@ -262,6 +277,11 @@ class DatabaseClass:
         cursor = self.connection.cursor()
         cursor.execute("DELETE FROM classes WHERE class_id = %s", (class_id,))
         self.connection.commit()
+    
+    def get_all_classes(self):
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM classes")
+        return cursor.fetchall()
 
 
 class DataVisualization:
