@@ -2,14 +2,20 @@ import mysql.connector
 import logging
 import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 # Set up logging
-logging.basicConfig(
-    filename='app.log',
-    filemode='a',
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+class Logger:
+    def __init__(self, log_file="Sys_school.log"):
+        
+        self.log_file = log_file
+
+    def write_log(self, cm, out ):
+        
+        with open(self.log_file, "a") as file:
+            now = datetime.now().strftime("%d/%m/%Y -- %I:%M %p")
+            text = f"{now} | Command: {cm} | Outcome: {out}\n"
+            file.write(text)
 
 class DatabaseConnection:
     _connection = None

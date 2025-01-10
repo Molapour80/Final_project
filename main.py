@@ -1,4 +1,5 @@
 from Final_project import *
+import csv
 
 def main():
     connection_ = DatabaseConnection.get_connection()
@@ -46,6 +47,39 @@ def main():
             print("Invalid choice! Please try again.")
 
     connection_.close()
+
+def export_data_to_csv(db_student, db_teacher, db_class, db_course):
+    """send the information to CSV"""
+
+    #send to the student
+    with open('students.csv', mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Student ID", "Name", "Email", "Class ID"])
+        for student in db_student.get_all_students():
+            writer.writerow(student)  
+
+    #send to the teachers
+    with open('teachers.csv', mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Teacher ID", "Name", "Email", "Course ID"])  
+        for teacher in db_teacher.get_all_teachers():
+            writer.writerow(teacher)  
+
+    #send to the classes
+    with open('classes.csv', mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Class ID", "Name", "Teacher ID"])  
+        for class_ in db_class.get_all_classes():
+            writer.writerow(class_)  
+
+    #send to the courses
+    with open('courses.csv', mode='w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Course ID", "Name"])  
+        for course in db_course.get_all_courses():
+            writer.writerow(course)  
+
+    print("Data exported to CSV files successfully.")
 
 def database_student(db_student, db_class):
     while True:
