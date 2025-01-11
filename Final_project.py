@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime
 import csv
+from main import is_simple_valid_email
 
 # Set up logging
 logging.basicConfig(filename='Sys_school.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -123,13 +124,17 @@ class DatabaseStudent:
         self.connection = connection
 
     def add_student(self, student):
+        if not is_simple_valid_email(student.email):
+            logging.error(f"Invalid email format for student: {student.name}")
+            print(f"Error: Invalid email format for {student.name}.")
+            return
         cursor = self.connection.cursor()
         cursor.execute(
             "INSERT INTO students (name, email, class_id) VALUES (%s, %s, %s)",
             (student.name, student.email, student.class_id)
         )
         self.connection.commit()
-        cursor.close()  # Close cursor
+        cursor.close()
         logging.info(f"Added student: {student.name}")
 
     def get_student(self, student_id):
@@ -147,13 +152,17 @@ class DatabaseStudent:
         return student
 
     def update_student(self, student):
+        if not is_simple_valid_email(student.email):
+            logging.error(f"Invalid email format for student: {student.name}")
+            print(f"Error: Invalid email format for {student.name}.")
+            return
         cursor = self.connection.cursor()
         cursor.execute(
             "UPDATE students SET name = %s, email = %s, class_id = %s WHERE student_id = %s",
             (student.name, student.email, student.class_id, student.student_id)
         )
         self.connection.commit()
-        cursor.close()  # Close cursor
+        cursor.close()
         logging.info(f"Updated student: {student.name}")
 
     def delete_student(self, student_id):
@@ -176,6 +185,10 @@ class DatabaseTeacher:
         self.connection = connection
 
     def add_teacher(self, teacher):
+        if not is_simple_valid_email(teacher.email):
+            logging.error(f"Invalid email format for teacher: {teacher.name}")
+            print(f"Error: Invalid email format for {teacher.name}.")
+            return
         cursor = self.connection.cursor()
         cursor.execute(
             "INSERT INTO teachers (name, email, course_id) VALUES (%s, %s, %s)",
@@ -184,7 +197,6 @@ class DatabaseTeacher:
         self.connection.commit()
         cursor.close()
         logging.info(f"Added teacher: {teacher.name}")
-
     def get_teacher(self, teacher_id):
         cursor = self.connection.cursor()
         cursor.execute("SELECT * FROM teachers WHERE teacher_id = %s", (teacher_id,))

@@ -1,6 +1,9 @@
+#https://github.com/Molapour80/Final_project
 import logging
 import csv
 from Final_project import *
+import os
+from datetime import datetime
 
 # Set up logging
 logging.basicConfig(
@@ -9,13 +12,53 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
+#create the table
+def save_table_structure_to_txt(file_path):
+    """Save table structures and SQL commands to a text file."""
+    table_structure = """
+    CREATE TABLE students (
+        student_id INT PRIMARY KEY,
+        name VARCHAR(100),
+        email VARCHAR(100),
+        class_id INT,
+        registration_date DATE
+    );
 
+    CREATE TABLE teachers (
+        teacher_id INT PRIMARY KEY,
+        name VARCHAR(100),
+        subject VARCHAR(100)
+    );
+
+    CREATE TABLE classes (
+        class_id INT PRIMARY KEY,
+        class_name VARCHAR(100)
+    );
+
+    CREATE TABLE courses (
+        course_id INT PRIMARY KEY,
+        course_name VARCHAR(100),
+        teacher_id INT,
+        class_id INT
+    );
+    """
+
+    try:
+        with open(file_path, mode='w') as file:
+            file.write(table_structure)
+        print(f"Table structure saved successfully at {file_path}")
+    except Exception as e:
+        print(f"An error occurred while saving the table structure: {e}")
+
+#show the information about the students ,email ,name , class_id 
 def import_or_update_students_from_csv(db_student, db_class, file_path):
     """Import or update students from a CSV file into the database."""
     try:
         with open(file_path, mode='r') as file:
             reader = csv.DictReader(file)
             required_columns = ['name', 'email', 'class_id']
+            
+            # Check for required columns in the CSV
             if not all(column in reader.fieldnames for column in required_columns):
                 print(f"Error: The CSV file must contain the following columns: {', '.join(required_columns)}")
                 return
@@ -23,28 +66,46 @@ def import_or_update_students_from_csv(db_student, db_class, file_path):
             for row in reader:
                 name = row['name']
                 email = row['email']
-                class_id = int(row['class_id'])
+
+                try:
+                    class_id = int(row['class_id'])
+                except ValueError:
+                    print(f"Error: Class ID '{row['class_id']}' is not a valid integer for student '{name}'. Skipping.")
+                    continue
 
                 # Check if class exists before adding or updating student
                 if db_class.get_class(class_id):
                     existing_student = db_student.get_student_by_email(email)
+                    
                     if existing_student:
+                        # Update existing student
                         existing_student.name = name
                         existing_student.class_id = class_id
                         db_student.update_student(existing_student)
                         logging.info(f"Updated student: {name}")
                         print(f"Updated student: {name}")
                     else:
+                        # Add new student
                         student = Student(student_id=None, name=name, email=email, class_id=class_id)
                         db_student.add_student(student)
                         logging.info(f"Added student: {name}")
                         print(f"Added student: {name}")
                 else:
                     print(f"Class ID {class_id} does not exist. Skipping student: {name}")
+    
     except FileNotFoundError:
         print(f"Error: The file {file_path} was not found.")
     except Exception as e:
         print(f"An error occurred: {e}")
+
+def is_simple_valid_email(email):
+    """Check if the provided email has a simple valid format."""
+    if "@" not in email or "." not in email:
+        return False
+    username, domain = email.split("@")
+    if len(username) < 1 or len(domain) < 3:
+        return False
+    return True
 
 
 
@@ -60,7 +121,7 @@ def main():
     db_course = DatabaseCourse(connection_)
 
     while True:
-        print("Welcome to Sys school")
+        print("\nWelcome to Sys school")
         print("\nSelect an operation:")
         print("1. Database Student")
         print("2. Database Teacher")
@@ -68,7 +129,9 @@ def main():
         print("4. Database Courses")
         print("5. Export Data to CSV") 
         print("6. Visualize Student Count")
-        print("7. Exit")
+        print("7. Generate CSV Report")
+        print("8. Save Table Structure to TXT")
+        print("9. Exit")
 
         choice = input("Enter your choice: ")
 
@@ -76,7 +139,7 @@ def main():
             database_student(db_student, db_class)
 
         elif choice == "2":
-            database_teacher(db_teacher,db_course)
+            database_teacher(db_teacher, db_course)
 
         elif choice == "3":
             database_class(db_class, db_teacher)  
@@ -85,15 +148,24 @@ def main():
             database_courses(db_course)
 
         elif choice == "5":
-            export_data_to_csv(db_student, db_teacher, db_class, db_course)  
+            export_data_to_csv(db_student, db_teacher, db_class, db_course)
 
         elif choice == "6":
             DataVisualization.plot_student_count_by_class()
 
         elif choice == "7":
+            selected_fields = select_fields_for_csv_report()
+            if selected_fields:
+                file_path = input("Enter the path to save the report (e.g., report.csv): ")
+                generate_csv_report(db_student, file_path, selected_fields)
+
+        elif choice == "8":
+            file_path = input("Enter the path to save the table structure (e.g., tables.txt): ")
+            save_table_structure_to_txt(file_path)
+
+        elif choice == "9":
             print("Exiting the program.")
             break
-
         else:
             print("Invalid choice! Please try again.")
 
@@ -151,6 +223,9 @@ def database_student(db_student, db_class):
             try:
                 name = input("Enter student name: ")
                 email = input("Enter student email: ")
+                if not is_simple_valid_email(email):
+                    print(f"Error: Invalid email format for {name}.")
+                    continue
                 class_id = int(input("Enter class ID: "))
 
                 # Check if class exists before adding student
@@ -172,6 +247,9 @@ def database_student(db_student, db_class):
                 if student:
                     name = input("Enter new name (leave blank to keep current): ")
                     email = input("Enter new email (leave blank to keep current): ")
+                    if email and not is_simple_valid_email(email):
+                        print(f"Error: Invalid email format. Keeping current email.")
+                        email = student.email
                     class_id = input("Enter new class ID (leave blank to keep current): ")
 
                     if name:
@@ -180,7 +258,7 @@ def database_student(db_student, db_class):
                         student.email = email
                     if class_id:
                         if db_class.get_class(int(class_id)):
-                            student.class_id = int(class_id)  # Validate class ID
+                            student.class_id = int(class_id) 
                         else:
                             print(f"Class ID {class_id} does not exist. Keeping current class ID.")
 
@@ -247,6 +325,9 @@ def database_teacher(db_teacher, db_course):
             try:
                 name = input("Enter teacher name: ")
                 email = input("Enter teacher email: ")
+                if not is_simple_valid_email(email):
+                    print(f"Error: Invalid email format for {name}.")
+                    continue
                 course_id = int(input("Enter course ID: "))
 
                 if not db_course.get_course(course_id):
@@ -475,6 +556,58 @@ def database_courses(db_course):
 
         else:
             print("Invalid choice! Please try again.")
+
+
+def format_student_data(student):
+    """Format student data for CSV output."""
+    return {
+        'student_id': student.student_id,
+        'name': student.name.title(),  # Capitalize name
+        'email': student.email.lower(),  # Lowercase email
+        'class_id': student.class_id,
+        'registration_date': student.registration_date.strftime('%Y-%m-%d')  # Format date
+    }
+
+def generate_csv_report(db_student, file_path, selected_fields):
+    """Generate or append to a CSV report based on selected fields."""
+    if os.path.exists(file_path):
+        mode = 'a'  # Append mode
+    else:
+        mode = 'w'  # Write mode (create new file)
+
+    try:
+        with open(file_path, mode=mode, newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=selected_fields)
+            
+            # If creating a new file, write the header
+            if mode == 'w':
+                writer.writeheader()
+
+            students = db_student.get_all_students()
+            
+            for student in students:
+                # Format data before writing
+                formatted_data = format_student_data(student)
+                writer.writerow({field: formatted_data[field] for field in selected_fields})
+        
+        print(f"Report generated successfully at {file_path}")
+        logging.info(f"Report generated successfully at {file_path}")
+    except Exception as e:
+        print(f"An error occurred while generating the report: {e}")
+def select_fields_for_csv_report():
+    """Allow the user to select fields for the CSV report."""
+    print("Select fields for the report (comma-separated):")
+    print("Available fields: student_id, name, email, class_id")
+    
+    selected_fields = input("Enter fields: ").split(',')
+    selected_fields = [field.strip() for field in selected_fields]
+
+    valid_fields = ['student_id', 'name', 'email', 'class_id']
+    if not all(field in valid_fields for field in selected_fields):
+        print("Error: One or more selected fields are invalid.")
+        return None
+    
+    return selected_fields
 
 if __name__ == "__main__":
     main()

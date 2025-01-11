@@ -21,3 +21,22 @@
 2025-01-11 16:04:24,159 - INFO - Connected to the database
 2025-01-11 16:04:52,827 - INFO - Added class: 2001
 2025-01-11 16:06:19,218 - INFO - Added student: lila
+2025-01-11 16:18:04,876 - ERROR - Error exporting data to CSV: iterable expected, not Student
+2025-01-11 16:18:08,579 - ERROR - Error exporting data to CSV: iterable expected, not Student
+2025-01-11 16:19:35,191 - ERROR - Error exporting data to CSV: iterable expected, not Student
+2025-01-11 16:22:18,157 - INFO - Added student: helia
+2025-01-11 16:22:45,752 - ERROR - Error exporting data to CSV: iterable expected, not Student
+2025-01-11 16:29:34,679 - INFO - Connected to the database
+2025-01-11 16:30:30,937 - INFO - Report generated successfully at File_project
+2025-01-11 16:33:26,874 - INFO - Connected to the database
+2025-01-11 16:34:47,583 - INFO - Report generated successfully at class_id
+2025-01-11 16:35:27,932 - ERROR - Error exporting data to CSV: iterable expected, not Student
+2025-01-11 16:40:05,765 - INFO - Connected to the database
+2025-01-11 16:40:47,831 - INFO - Added student: yalda
+2025-01-11 16:41:42,156 - INFO - Report generated successfully at class_id.csv
+2025-01-11 16:42:00,534 - INFO - Report generated successfully at email.csv
+2025-01-11 16:48:31,305 - INFO - Connected to the database
+2025-01-11 17:11:00,598 - INFO - Connected to the database
+2025-01-11 17:11:33,119 - INFO - Added student: narjes
+2025-01-11 17:12:52,834 - INFO - Connected to the database
+2025-01-11 17:13:27,753 - INFO - Added student: nila
