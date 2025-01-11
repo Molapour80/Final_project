@@ -1,4 +1,4 @@
-
+#write this code create the table system school
     CREATE TABLE students (
         student_id INT PRIMARY KEY,
         name VARCHAR(100),
