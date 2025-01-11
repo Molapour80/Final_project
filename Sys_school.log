@@ -1,3 +1,23 @@
 2025-01-11 00:16:48,051 - INFO - Connected to the database
 2025-01-11 00:17:06,268 - INFO - Added course: c++
 2025-01-11 00:17:15,125 - INFO - Added course: python
+2025-01-11 10:45:40,431 - INFO - Connected to the database
+2025-01-11 11:29:37,344 - INFO - Connected to the database
+2025-01-11 11:32:22,508 - INFO - Connected to the database
+2025-01-11 11:32:35,694 - INFO - Updated course: data
+2025-01-11 11:36:45,599 - INFO - Connected to the database
+2025-01-11 11:39:26,387 - INFO - Added teacher: wer
+2025-01-11 11:41:26,092 - INFO - Connected to the database
+2025-01-11 11:41:42,346 - INFO - Added teacher: qw
+2025-01-11 11:43:04,474 - INFO - Deleted teacher ID: 1
+2025-01-11 11:44:49,207 - INFO - Connected to the database
+2025-01-11 11:46:30,505 - INFO - Connected to the database
+2025-01-11 11:48:48,554 - INFO - Added class: aq
+2025-01-11 15:51:24,991 - INFO - Connected to the database
+2025-01-11 15:53:45,868 - INFO - Connected to the database
+2025-01-11 15:56:15,014 - INFO - Connected to the database
+2025-01-11 15:57:13,372 - INFO - Added teacher: 1
+2025-01-11 16:01:02,945 - INFO - Connected to the database
+2025-01-11 16:04:24,159 - INFO - Connected to the database
+2025-01-11 16:04:52,827 - INFO - Added class: 2001
+2025-01-11 16:06:19,218 - INFO - Added student: lila

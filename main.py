@@ -1,11 +1,25 @@
+import logging
+import csv
 from Final_project import *
 
+# Set up logging
+logging.basicConfig(
+    filename='Sys_school.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 def import_or_update_students_from_csv(db_student, db_class, file_path):
     """Import or update students from a CSV file into the database."""
     try:
         with open(file_path, mode='r') as file:
             reader = csv.DictReader(file)
+            required_columns = ['name', 'email', 'class_id']
+            if not all(column in reader.fieldnames for column in required_columns):
+                print(f"Error: The CSV file must contain the following columns: {', '.join(required_columns)}")
+                return
+            
             for row in reader:
                 name = row['name']
                 email = row['email']
@@ -13,18 +27,17 @@ def import_or_update_students_from_csv(db_student, db_class, file_path):
 
                 # Check if class exists before adding or updating student
                 if db_class.get_class(class_id):
-                    # Check if student already exists
                     existing_student = db_student.get_student_by_email(email)
                     if existing_student:
-                        # Update existing student
                         existing_student.name = name
                         existing_student.class_id = class_id
                         db_student.update_student(existing_student)
+                        logging.info(f"Updated student: {name}")
                         print(f"Updated student: {name}")
                     else:
-                        # Add new student
                         student = Student(student_id=None, name=name, email=email, class_id=class_id)
                         db_student.add_student(student)
+                        logging.info(f"Added student: {name}")
                         print(f"Added student: {name}")
                 else:
                     print(f"Class ID {class_id} does not exist. Skipping student: {name}")
@@ -33,19 +46,7 @@ def import_or_update_students_from_csv(db_student, db_class, file_path):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def generate_report(db_student, db_class):
-    """Generate a report of students and their classes."""
-    students = db_student.get_all_students()
-    report_data = []
 
-    for student in students:
-        class_name = db_class.get_class(student[3])[1]  
-        report_data.append(f"Student ID: {student[0]}, Name: {student[1]}, Email: {student[2]}, Class: {class_name}")
-
-    with open("student_report.txt", "w") as report_file:
-        for line in report_data:
-            report_file.write(line + "\n")
-    print("Report generated: student_report.txt")
 
 def main():
     connection_ = DatabaseConnection.get_connection()
@@ -140,8 +141,9 @@ def database_student(db_student, db_class):
         print("1. Add Student")
         print("2. Update Student")
         print("3. Delete Student")
-        print("4. View Student")
-        print("5. Back to Main Menu")
+        print("4. View Student by ID")
+        print("5. View All Students")
+        print("6. Back to Main Menu")
 
         choice = input("Enter your choice: ")
 
@@ -150,7 +152,7 @@ def database_student(db_student, db_class):
                 name = input("Enter student name: ")
                 email = input("Enter student email: ")
                 class_id = int(input("Enter class ID: "))
-                
+
                 # Check if class exists before adding student
                 if db_class.get_class(class_id):
                     student = Student(student_id=None, name=name, email=email, class_id=class_id)
@@ -171,12 +173,17 @@ def database_student(db_student, db_class):
                     name = input("Enter new name (leave blank to keep current): ")
                     email = input("Enter new email (leave blank to keep current): ")
                     class_id = input("Enter new class ID (leave blank to keep current): ")
+
                     if name:
                         student.name = name
                     if email:
                         student.email = email
                     if class_id:
-                        student.class_id = int(class_id)
+                        if db_class.get_class(int(class_id)):
+                            student.class_id = int(class_id)  # Validate class ID
+                        else:
+                            print(f"Class ID {class_id} does not exist. Keeping current class ID.")
+
                     db_student.update_student(student)
                     print("Student updated successfully.")
                 else:
@@ -201,13 +208,24 @@ def database_student(db_student, db_class):
                 student_id = int(input("Enter student ID to view: "))
                 student = db_student.get_student(student_id)
                 if student:
-                    print(f"ID: {student[0]}, Name: {student[1]}, Email: {student[2]}, Class ID: {student[3]}")
+                    print(f"ID: {student.student_id}, Name: {student.name}, Email: {student.email}, Class ID: {student.class_id}")
                 else:
                     print("Student not found.")
             except ValueError:
                 print("Invalid input. Please enter a valid student ID.")
 
         elif choice == "5":
+            try:
+                students = db_student.get_all_students()  # Make sure to implement this method
+                if students:
+                    for student in students:
+                        print(f"ID: {student.student_id}, Name: {student.name}, Email: {student.email}, Class ID: {student.class_id}")
+                else:
+                    print("No students found.")
+            except Exception as e:
+                print(f"Error retrieving students: {e}")
+
+        elif choice == "6":
             break
 
         else:
@@ -219,8 +237,9 @@ def database_teacher(db_teacher, db_course):
         print("1. Add Teacher")
         print("2. Update Teacher")
         print("3. Delete Teacher")
-        print("4. View Teacher")
-        print("5. Back to Main Menu")
+        print("4. View All Teachers")
+        print("5. View Teacher by ID")
+        print("6. Back to Main Menu")
 
         choice = input("Enter your choice: ")
 
@@ -230,10 +249,9 @@ def database_teacher(db_teacher, db_course):
                 email = input("Enter teacher email: ")
                 course_id = int(input("Enter course ID: "))
 
-                
                 if not db_course.get_course(course_id):
                     print(f"Course ID {course_id} does not exist.")
-                    continue
+                    continue  
                 
                 teacher = Teacher(teacher_id=None, name=name, email=email, course_id=course_id)
                 db_teacher.add_teacher(teacher)
@@ -251,12 +269,17 @@ def database_teacher(db_teacher, db_course):
                     name = input("Enter new name (leave blank to keep current): ")
                     email = input("Enter new email (leave blank to keep current): ")
                     course_id = input("Enter new course ID (leave blank to keep current): ")
+
                     if name:
                         teacher.name = name
                     if email:
                         teacher.email = email
                     if course_id:
-                        teacher.course_id = int(course_id)
+                        if db_course.get_course(int(course_id)):
+                            teacher.course_id = int(course_id)
+                        else:
+                            print(f"Course ID {course_id} does not exist. Keeping current course ID.")
+
                     db_teacher.update_teacher(teacher)
                     print("Teacher updated successfully.")
                 else:
@@ -278,16 +301,27 @@ def database_teacher(db_teacher, db_course):
 
         elif choice == "4":
             try:
+                teachers = db_teacher.get_all_teachers()  # Make sure to implement this method
+                if teachers:
+                    for teacher in teachers:
+                        print(f"ID: {teacher.teacher_id}, Name: {teacher.name}, Email: {teacher.email}, Course ID: {teacher.course_id}")
+                else:
+                    print("No teachers found.")
+            except Exception as e:
+                print(f"Error retrieving teachers: {e}")
+
+        elif choice == "5":
+            try:
                 teacher_id = int(input("Enter teacher ID to view: "))
                 teacher = db_teacher.get_teacher(teacher_id)
                 if teacher:
-                    print(f"ID: {teacher[0]}, Name: {teacher[1]}, Email: {teacher[2]}, Course ID: {teacher[3]}")
+                    print(f"ID: {teacher.teacher_id}, Name: {teacher.name}, Email: {teacher.email}, Course ID: {teacher.course_id}")
                 else:
                     print("Teacher not found.")
             except ValueError:
                 print("Invalid input. Please enter a valid teacher ID.")
 
-        elif choice == "5":
+        elif choice == "6":
             break
 
         else:
@@ -299,8 +333,9 @@ def database_class(db_class, db_teacher):
         print("1. Add Class")
         print("2. Update Class")
         print("3. Delete Class")
-        print("4. View Class")
-        print("5. Back to Main Menu")
+        print("4. View Class by ID")
+        print("5. View All Classes")
+        print("6. Back to Main Menu")
 
         choice = input("Enter your choice: ")
 
@@ -309,7 +344,6 @@ def database_class(db_class, db_teacher):
                 name = input("Enter class name: ")
                 teacher_id = int(input("Enter teacher ID: "))
 
-                
                 if not db_teacher.get_teacher(teacher_id):
                     print(f"Teacher ID {teacher_id} does not exist.")
                     continue
@@ -332,7 +366,11 @@ def database_class(db_class, db_teacher):
                     if name:
                         class_.name = name
                     if teacher_id:
-                        class_.teacher_id = int(teacher_id)
+                        if db_teacher.get_teacher(int(teacher_id)):
+                            class_.teacher_id = int(teacher_id)
+                        else:
+                            print(f"Teacher ID {teacher_id} does not exist. Keeping current teacher ID.")
+
                     db_class.update_class(class_)
                     print("Class updated successfully.")
                 else:
@@ -357,18 +395,28 @@ def database_class(db_class, db_teacher):
                 class_id = int(input("Enter class ID to view: "))
                 class_ = db_class.get_class(class_id)
                 if class_:
-                    print(f"ID: {class_[0]}, Name: {class_[1]}, Teacher ID: {class_[2]}")
+                    print(f"ID: {class_.class_id}, Name: {class_.name}, Teacher ID: {class_.teacher_id}")
                 else:
                     print("Class not found.")
             except ValueError:
                 print("Invalid input. Please enter a valid class ID.")
 
         elif choice == "5":
+            try:
+                classes = db_class.get_all_classes() 
+                if classes:
+                    for class_ in classes:
+                        print(f"ID: {class_.class_id}, Name: {class_.name}, Teacher ID: {class_.teacher_id}")
+                else:
+                    print("No classes found.")
+            except Exception as e:
+                print(f"Error retrieving classes: {e}")
+
+        elif choice == "6":
             break
 
         else:
             print("Invalid choice! Please try again.")
-
 def database_courses(db_course):
     while True:
         print("\nCourse Operations:")
@@ -383,7 +431,7 @@ def database_courses(db_course):
         if choice == "1":
             try:
                 name = input("Enter course name: ")  
-                course = Course(course_id=None, name=name)
+                course = Course(course_id=None, name=name) 
                 db_course.add_course(course)
                 print("Course added successfully.")
             except Exception as e:
@@ -396,7 +444,7 @@ def database_courses(db_course):
                 if course:
                     name = input("Enter new name (leave blank to keep current): ")
                     if name:
-                        course.name = name
+                        course.name = name  
                     db_course.update_course(course)
                     print("Course updated successfully.")
                 else:
@@ -417,15 +465,10 @@ def database_courses(db_course):
                 print(f"Error deleting course: {e}")
 
         elif choice == "4":
-            try:
-                course_id = int(input("Enter course ID to view: "))
-                course = db_course.get_course(course_id)
-                if course:
-                    print(f"ID: {course[0]}, Name: {course[1]}")
-                else:
-                    print("Course not found.")
-            except ValueError:
-                print("Invalid input. Please enter a valid course ID.")
+            
+            courses = db_course.get_all_courses()
+            for course in courses:
+                print(f"ID: {course.course_id}, Name: {course.name}") 
 
         elif choice == "5":
             break
@@ -435,4 +478,5 @@ def database_courses(db_course):
 
 if __name__ == "__main__":
     main()
+      
     
