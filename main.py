@@ -1,9 +1,5 @@
 #https://github.com/Molapour80/Final_project
-import logging
-import csv
 from Final_project import *
-import os
-from datetime import datetime
 
 # Set up logging
 logging.basicConfig(
@@ -12,6 +8,20 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S'
 )
+#search_by name in teacher
+def search_teachers_by_name(db_teacher):
+    """Search for teachers by name."""
+    name = input("Enter the name of the teacher to search for: ").strip().lower()
+    teachers = db_teacher.get_all_teachers() 
+    found_teachers = [teacher for teacher in teachers if name in teacher.name.lower()]
+    
+    if found_teachers:
+        print("\nSearch Results:")
+        for teacher in found_teachers:
+            print(f"ID: {teacher.teacher_id}, Name: {teacher.name}, Email: {teacher.email}, Course ID: {teacher.course_id}")
+    else:
+        print("No teachers found with that name.")
+
 #create the table
 def save_table_structure_to_txt(file_path):
     """Save table structures and SQL commands to a text file."""
@@ -108,7 +118,7 @@ def is_simple_valid_email(email):
     return True
 
 
-
+"""First the main option"""
 def main():
     connection_ = DatabaseConnection.get_connection()
     if connection_ is None:
@@ -156,7 +166,7 @@ def main():
         elif choice == "7":
             selected_fields = select_fields_for_csv_report()
             if selected_fields:
-                file_path = input("Enter the path to save the report (e.g., report.csv): ")
+                file_path = input("Enter your the name file to save the report(.csv): ")
                 generate_csv_report(db_student, file_path, selected_fields)
 
         elif choice == "8":
@@ -179,43 +189,45 @@ def export_data_to_csv(db_student, db_teacher, db_class, db_course):
             writer = csv.writer(file)
             writer.writerow(["Student ID", "Name", "Email", "Class ID"])
             for student in db_student.get_all_students():
-                writer.writerow(student)
+                writer.writerow([student.student_id, student.name, student.email, student.class_id])
 
         # Export teachers
         with open('teachers.csv', mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(["Teacher ID", "Name", "Email", "Course ID"])
             for teacher in db_teacher.get_all_teachers():
-                writer.writerow(teacher)
+                writer.writerow([teacher.teacher_id, teacher.name, teacher.email, teacher.course_id])
 
         # Export classes
         with open('classes.csv', mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(["Class ID", "Name", "Teacher ID"])
             for class_ in db_class.get_all_classes():
-                writer.writerow(class_)
+                writer.writerow([class_.class_id, class_.name, class_.teacher_id])
 
         # Export courses
         with open('courses.csv', mode='w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(["Course ID", "Name"])
             for course in db_course.get_all_courses():
-                writer.writerow(course)
+                writer.writerow([course.course_id, course.name])
 
         print("Data exported to CSV files successfully.")
     except Exception as e:
         logging.error("Error exporting data to CSV: %s", e)
         print("Failed to export data to CSV. Please check the file permissions and try again.")
 
+# main student database
 def database_student(db_student, db_class):
     while True:
         print("\nStudent Operations:")
         print("1. Add Student")
         print("2. Update Student")
         print("3. Delete Student")
-        print("4. View Student by ID")
-        print("5. View All Students")
-        print("6. Back to Main Menu")
+        print("4.search by name")
+        print("5. View Student by ID")
+        print("6. View All Students")
+        print("7. Back to Main Menu")
 
         choice = input("Enter your choice: ")
 
@@ -282,6 +294,9 @@ def database_student(db_student, db_class):
                 print(f"Error deleting student: {e}")
 
         elif choice == "4":
+            search_students_by_name(db_student) 
+
+        elif choice == "5":
             try:
                 student_id = int(input("Enter student ID to view: "))
                 student = db_student.get_student(student_id)
@@ -292,7 +307,7 @@ def database_student(db_student, db_class):
             except ValueError:
                 print("Invalid input. Please enter a valid student ID.")
 
-        elif choice == "5":
+        elif choice == "6":
             try:
                 students = db_student.get_all_students()  # Make sure to implement this method
                 if students:
@@ -303,7 +318,7 @@ def database_student(db_student, db_class):
             except Exception as e:
                 print(f"Error retrieving students: {e}")
 
-        elif choice == "6":
+        elif choice == "7":
             break
 
         else:
@@ -315,9 +330,10 @@ def database_teacher(db_teacher, db_course):
         print("1. Add Teacher")
         print("2. Update Teacher")
         print("3. Delete Teacher")
-        print("4. View All Teachers")
-        print("5. View Teacher by ID")
-        print("6. Back to Main Menu")
+        print("4. Search Teachers by Name")
+        print("5. View All Teachers")
+        print("6. View Teacher by ID")
+        print("7. Back to Main Menu")
 
         choice = input("Enter your choice: ")
 
@@ -381,6 +397,9 @@ def database_teacher(db_teacher, db_course):
                 print(f"Error deleting teacher: {e}")
 
         elif choice == "4":
+            search_teachers_by_name(db_teacher)
+
+        elif choice == "5":
             try:
                 teachers = db_teacher.get_all_teachers()  # Make sure to implement this method
                 if teachers:
@@ -391,7 +410,7 @@ def database_teacher(db_teacher, db_course):
             except Exception as e:
                 print(f"Error retrieving teachers: {e}")
 
-        elif choice == "5":
+        elif choice == "6":
             try:
                 teacher_id = int(input("Enter teacher ID to view: "))
                 teacher = db_teacher.get_teacher(teacher_id)
@@ -402,7 +421,7 @@ def database_teacher(db_teacher, db_course):
             except ValueError:
                 print("Invalid input. Please enter a valid teacher ID.")
 
-        elif choice == "6":
+        elif choice == "7":
             break
 
         else:
