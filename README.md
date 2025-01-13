@@ -34,4 +34,4 @@ python main.py
 The system utilizes the logging module to record errors and significant events. All logs are stored in the Sys_school.log file for your review.
 
 # 🗄️ MongoDB Integration
-For those who prefer using MongoDB, the system supports data storage and retrieval via the MongoDB database. Ensure your MongoDB instance is running, and modify the database connection settings in the code to point to your MongoDB server.
+Write the sys_mongodb.py with mongodb.
