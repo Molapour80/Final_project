@@ -39,18 +39,19 @@ Write the sys_mongodb.py with mongodb.
 # Table 
 - Class Student 
 | id | name | email | clases_id|
-| --- | --- | --- | --- |
+| :---: | :---: | :---: | :---: |
 
 - Class Teacher
 | id | name | email | course_id|
-| --- | --- | --- | ---|
+| :---: | :---: | :---: | :---: |
 
 - class course
 | id | name |
+| :---: | :---: | 
 
 - class clases
 | id | name |teacher_id|
-| --- | --- | --- | --- |
+| :---: | :---: | :---: | :---: |
 
 
 
