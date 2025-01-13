@@ -53,6 +53,7 @@ Write the sys_mongodb.py with mongodb.
 | id | name |teacher_id|
 | :---: | :---: | :---: | :---: |
 
-
+| Name | Last Name | Age |
+| :---: | :---: | :---: |
 
 
